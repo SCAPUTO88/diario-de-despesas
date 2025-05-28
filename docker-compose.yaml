@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+    dynamodb-local:
+        image: amazon/dynamodb-local
+        container_name: dynamodb-local
+        ports:
+            - "8000:8000"
+        environment:
+            - AWS_ACCESS_KEY_ID=fakeMyKeyId
+            - AWS_SECRET_ACCESS_KEY=fakeSecretAccessKey
+            - AWS_DEFAULT_REGION=sa-east-1
+        command: -jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal
+        volumes:
+            - dynamodb_data:/home/dynamodblocal
+        networks:
+            - dynamodb-local-network
+
+networks:
+    dynamodb-local-network:
+        driver: bridge
+
+volumes:
+    dynamodb_data:
