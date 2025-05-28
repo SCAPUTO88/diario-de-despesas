@@ -6,6 +6,10 @@ import com.example.despesas_projeto.dto.TransactionResponseDTO;
 import com.example.despesas_projeto.enums.TransactionType;
 import com.example.despesas_projeto.model.Transaction;
 import com.example.despesas_projeto.service.TransactionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +27,21 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/transactions")
 @RequiredArgsConstructor
+@Tag(name = "Transações", description = "Endpoints para gerenciamento de transações financeirasz")
 public class TransactionController {
 
     private final TransactionService transactionService;
+
+    @Operation(
+            summary = "Criação de transações",
+            description = "Endpoint para criar transações financeiras"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Transação criada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+
 
     @PostMapping
     public ResponseEntity<TransactionResponseDTO> createTransaction(@Valid @RequestBody TransactionRequestDTO request) {
@@ -59,6 +75,15 @@ public class TransactionController {
                 .status(HttpStatus.CREATED)
                 .body(TransactionResponseDTO.fromModel(createdTransaction));
     }
+
+    @Operation(
+            summary = "Buscar transação específica",
+            description = "Recupera uma transação específica com base no ID do usuário e data da transação"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Transação encontrada"),
+            @ApiResponse(responseCode = "404", description = "Transação não encontrada")
+    })
 
 
     @GetMapping("/{userId}/{transactionDate}")
