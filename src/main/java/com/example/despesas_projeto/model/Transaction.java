@@ -16,7 +16,7 @@ import java.util.List;
 @Data
 @Builder
 @AllArgsConstructor
-@DynamoDBTable(tableName = "Transactions")
+@DynamoDBTable(tableName = "transactions")
 public class Transaction {
 
     public Transaction() {

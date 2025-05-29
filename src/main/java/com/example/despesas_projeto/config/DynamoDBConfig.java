@@ -8,18 +8,17 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRepositories;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
 
 @Configuration
 @EnableDynamoDBRepositories(
-        basePackages = "com.example.despesas_projeto.repository",
-        includeFilters = @org.springframework.context.annotation.ComponentScan.Filter(
-                type = org.springframework.context.annotation.FilterType.REGEX,
+        basePackages = {"com.example.despesas_projeto.repository", "com.example.despesas_projeto.repository.impl"},
+        includeFilters = @ComponentScan.Filter(
+                type = FilterType.REGEX,
                 pattern = "com\\.example\\.despesas_projeto\\.repository\\..*"
         )
 )
+
 public class DynamoDBConfig {
 
     @Value("${aws.dynamodb.endpoint}")
