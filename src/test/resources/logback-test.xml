@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+    <!-- Configure loggers -->
+    <logger name="com.example.despesas_projeto" level="DEBUG"/>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="com.amazonaws" level="INFO"/>
+
+    <!-- Específico para testes -->
+    <logger name="org.springframework.test" level="INFO"/>
+    <logger name="org.testcontainers" level="INFO"/>
+</configuration>
