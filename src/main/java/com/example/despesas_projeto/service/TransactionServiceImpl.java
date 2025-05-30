@@ -1,5 +1,8 @@
 package com.example.despesas_projeto.service;
 
+import com.example.despesas_projeto.domain.Page;
+import com.example.despesas_projeto.domain.PageRequest;
+import com.example.despesas_projeto.domain.TransactionFilter;
 import com.example.despesas_projeto.enums.TransactionType;
 import com.example.despesas_projeto.exception.InvalidTransactionException;
 import com.example.despesas_projeto.exception.TransactionNotFoundException;
@@ -12,9 +15,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -110,10 +111,11 @@ public class TransactionServiceImpl implements TransactionService {
         List<Transaction> transactions = transactionRepository.findByUserIdAndDateRange(userId, startDate, endDate);
 
         return transactions.stream()
-                .filter(t -> t.getType().equals(type.name()))
+                .filter(t -> t.getType() == type) // Alterado aqui
                 .map(Transaction::getValue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
 
 
     @Override
@@ -200,4 +202,79 @@ public class TransactionServiceImpl implements TransactionService {
 
         log.debug("Transação validada com sucesso");
     }
+
+    @Override
+    public Page<Transaction> findAllWithFilters(TransactionFilter filter, PageRequest pageRequest) {
+        log.debug("Buscando transações com filtros: {}, paginação: {}", filter, pageRequest);
+
+        // Implementar a lógica de filtragem e paginação
+        List<Transaction> transactions = transactionRepository.findByFilters(filter);
+
+        // Aplicar ordenação
+        if (pageRequest.getSortBy() != null) {
+            transactions = sortTransactions(transactions, pageRequest);
+        }
+
+        // Aplicar paginação
+        int start = pageRequest.getPage() * pageRequest.getSize();
+        int end = Math.min(start + pageRequest.getSize(), transactions.size());
+        List<Transaction> pagedContent = transactions.subList(start, end);
+
+        return Page.of(pagedContent, pageRequest, transactions.size());
+    }
+
+    @Override
+    public List<String> findAllCategories(String userId) {
+        log.debug("Buscando todas as categorias para o usuário: {}", userId);
+        return transactionRepository.findByUserId(userId).stream()
+                .map(Transaction::getCategory)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, BigDecimal> getMonthlyTrendByCategory(String userId, String category, int year) {
+        log.debug("Calculando tendência mensal para categoria {} do usuário {} no ano {}",
+                category, userId, year);
+
+        Map<String, BigDecimal> monthlyTrend = new LinkedHashMap<>();
+
+        for (int month = 1; month <= 12; month++) {
+            YearMonth yearMonth = YearMonth.of(year, month);
+            LocalDateTime startDate = yearMonth.atDay(1).atStartOfDay();
+            LocalDateTime endDate = yearMonth.atEndOfMonth().atTime(23, 59, 59);
+
+            List<Transaction> transactions = transactionRepository.findByUserIdAndDateRange(
+                    userId, startDate, endDate);
+
+            BigDecimal total = transactions.stream()
+                    .filter(t -> category.equals(t.getCategory()))
+                    .map(Transaction::getValue)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            monthlyTrend.put(yearMonth.toString(), total);
+        }
+
+        return monthlyTrend;
+    }
+
+    private List<Transaction> sortTransactions(List<Transaction> transactions, PageRequest pageRequest) {
+        Comparator<Transaction> comparator = switch (pageRequest.getSortBy()) {
+            case "value" -> Comparator.comparing(Transaction::getValue);
+            case "date" -> Comparator.comparing(Transaction::getTransactionDate);
+            case "category" -> Comparator.comparing(Transaction::getCategory);
+            case "type" -> Comparator.comparing(t -> t.getType().name());
+            default -> Comparator.comparing(Transaction::getTransactionDate);
+        };
+
+        if ("desc".equalsIgnoreCase(pageRequest.getSortDirection())) {
+            comparator = comparator.reversed();
+        }
+
+        return transactions.stream()
+                .sorted(comparator)
+                .collect(Collectors.toList());
+    }
+
 }

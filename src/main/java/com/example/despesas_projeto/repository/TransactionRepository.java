@@ -1,5 +1,6 @@
 package com.example.despesas_projeto.repository;
 
+import com.example.despesas_projeto.domain.TransactionFilter;
 import com.example.despesas_projeto.enums.TransactionType;
 import com.example.despesas_projeto.model.Transaction;
 
@@ -17,4 +18,5 @@ public interface TransactionRepository {
     <S extends Transaction> S save(S entity);
     void delete(Transaction entity);
     List<Transaction> findByUserIdAndDateRange(String userId, LocalDateTime startDate, LocalDateTime endDate);
+    List<Transaction> findByFilters(TransactionFilter filter);
 }

@@ -2,6 +2,9 @@ package com.example.despesas_projeto.service;
 
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.example.despesas_projeto.domain.Page;
+import com.example.despesas_projeto.domain.PageRequest;
+import com.example.despesas_projeto.domain.TransactionFilter;
 import com.example.despesas_projeto.enums.TransactionType;
 import com.example.despesas_projeto.model.Transaction;
 
@@ -28,5 +31,12 @@ public interface TransactionService {
     Map<String, BigDecimal> getMonthlyBalance(String userId, int year, int month);
 
     void validateTransaction(Transaction transaction);
+
+    Page<Transaction> findAllWithFilters(TransactionFilter filter, PageRequest pageRequest);
+
+    List<String> findAllCategories(String userId);
+
+    Map<String, BigDecimal> getMonthlyTrendByCategory(String userId, String category, int year);
+
 
 }

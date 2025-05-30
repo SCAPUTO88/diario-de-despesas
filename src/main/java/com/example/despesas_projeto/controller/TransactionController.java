@@ -1,6 +1,9 @@
 package com.example.despesas_projeto.controller;
 
 
+import com.example.despesas_projeto.domain.Page;
+import com.example.despesas_projeto.domain.PageRequest;
+import com.example.despesas_projeto.domain.TransactionFilter;
 import com.example.despesas_projeto.dto.TransactionRequestDTO;
 import com.example.despesas_projeto.dto.TransactionResponseDTO;
 import com.example.despesas_projeto.enums.TransactionType;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -85,9 +89,8 @@ public class TransactionController {
             @ApiResponse(responseCode = "404", description = "Transação não encontrada")
     })
 
-
     @GetMapping("/{userId}/{transactionDate}")
-    public ResponseEntity<TransactionResponseDTO> getTransction(
+    public ResponseEntity<TransactionResponseDTO> getTransaction(
             @PathVariable String userId,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime transactionDate) {
 
@@ -99,15 +102,75 @@ public class TransactionController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsByUser(@PathVariable String userId) {
-        log.info("Listando todas as transações para o usuário: {}", userId);
 
-        List<TransactionResponseDTO> transactions = transactionService.findAllByUserId(userId).stream()
-                .map(TransactionResponseDTO::fromModel)
-                .toList();
+    @GetMapping("/{userId}/summary")
+    public ResponseEntity<Map<String, BigDecimal>> getUserTransactionsSummary(@PathVariable String userId) {
+        log.info("Gerando resumo de transações para o usuário: {}", userId);
 
-        return ResponseEntity.ok(transactions);
+        List<Transaction> transactions = transactionService.findAllByUserId(userId);
+
+        BigDecimal totalReceitas = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.INCOME)
+                .map(Transaction::getValue)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        BigDecimal totalDespesas = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.EXPENSE)
+                .map(Transaction::getValue)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        BigDecimal saldo = totalReceitas.subtract(totalDespesas);
+
+        Map<String, BigDecimal> summary = new HashMap<>();
+        summary.put("totalReceitas", totalReceitas);
+        summary.put("totalDespesas", totalDespesas);
+        summary.put("saldo", saldo);
+
+        return ResponseEntity.ok(summary);
+
+    }
+
+    @GetMapping("/{userId}/receitas/total")
+    public ResponseEntity<BigDecimal> getTotalReceitas(@PathVariable String userId) {
+        log.info("Calculando total de receitas para o usuário: {}", userId);
+
+        BigDecimal total = transactionService.findAllByUserId(userId).stream()
+                .filter(t -> t.getType() == TransactionType.INCOME)
+                .map(Transaction::getValue)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        return ResponseEntity.ok(total);
+    }
+
+    @GetMapping("/{userId}/despesas/total")
+    public ResponseEntity<BigDecimal> getTotalDespesas(@PathVariable String userId) {
+        log.info("Calculando total de despesas para o usuário: {}", userId);
+
+        BigDecimal total = transactionService.findAllByUserId(userId).stream()
+                .filter(t -> t.getType() == TransactionType.EXPENSE)
+                .map(Transaction::getValue)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        return ResponseEntity.ok(total);
+    }
+
+    @GetMapping("/{userId}/saldo")
+    public ResponseEntity<BigDecimal> getSaldo(@PathVariable String userId) {
+        log.info("Calculando saldo para o usuário: {}", userId);
+
+        List<Transaction> transactions = transactionService.findAllByUserId(userId);
+
+        BigDecimal receitas = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.INCOME)
+                .map(Transaction::getValue)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        BigDecimal despesas = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.EXPENSE)
+                .map(Transaction::getValue)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        return ResponseEntity.ok(receitas.subtract(despesas));
     }
 
     @PutMapping("/{userId}/{transactionDate}")
@@ -202,26 +265,7 @@ public class TransactionController {
 
         return ResponseEntity.ok(transactionService.getCategorySummary(userId, year, month));
     }
-
-
-//    private Transaction toEntity(TransactionRequestDTO  request) {
-//        Transaction transaction = new Transaction();
-//        transaction.setUserId(request.userId());
-//        transaction.setTransactionDate(request.transactionDate());
-//        transaction.setDescription(request.description());
-//        transaction.setValue(request.value());
-//        transaction.setCategory(request.category());
-//        transaction.setType(TransactionType.valueOf(String.valueOf(request.type())));
-//
-//        if(request.tags() != null) {
-//            for (String tag : request.tags()) {
-//                transaction.addTag(tag);
-//            }
-//        }
-//
-//        return transaction;
-//    }
-
+    
     private Transaction toEntity(TransactionRequestDTO request) {
         log.debug("Iniciando conversão do DTO para Entity. DTO: {}", request);
 
@@ -255,5 +299,37 @@ public class TransactionController {
         log.debug("Entity convertida: {}", transaction);
         return transaction;
     }
+
+    @GetMapping("/{userId}/transactions")
+    public ResponseEntity<Page<Transaction>> getTransactions(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDirection,
+            @RequestParam(required = false) TransactionType type,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(required = false) BigDecimal minValue,
+            @RequestParam(required = false) BigDecimal maxValue,
+            @RequestParam(required = false) String description) {
+
+        TransactionFilter filter = TransactionFilter.builder()
+                .userId(userId)
+                .type(type)
+                .category(category)
+                .startDate(startDate)
+                .endDate(endDate)
+                .minValue(minValue)
+                .maxValue(maxValue)
+                .description(description)
+                .build();
+
+        PageRequest pageRequest = PageRequest.of(page, size, sortBy, sortDirection);
+
+        return ResponseEntity.ok(transactionService.findAllWithFilters(filter, pageRequest));
+    }
+
 
 }
