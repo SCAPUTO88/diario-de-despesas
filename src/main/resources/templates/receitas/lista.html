@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::div})}">
+<body>
+<div>
+    <div class="row justify-content-center fade-in">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Cabeçalho com título e botão de nova receita -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title">
+                            <i class="ti ti-list text-success"></i> Minhas Receitas
+                        </h5>
+                        <a th:href="@{/receitas/nova}" class="btn btn-success">
+                            <i class="ti ti-plus"></i> Nova Receita
+                        </a>
+                    </div>
+
+                    <!-- Filtros de busca -->
+                    <form th:action="@{/receitas}" method="get" class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control"
+                                   th:field="${filtro.descricao}"
+                                   placeholder="Buscar por descrição...">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" th:field="${filtro.categoria}">
+                                <option value="">Todas as categorias</option>
+                                <option th:each="cat : ${categorias}"
+                                        th:value="${cat}"
+                                        th:text="${cat}">Categoria</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <input type="date" class="form-control"
+                                       th:field="${filtro.dataInicial}">
+                                <span class="input-group-text">até</span>
+                                <input type="date" class="form-control"
+                                       th:field="${filtro.dataFinal}">
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-secondary w-100">
+                                <i class="ti ti-search"></i>
+                            </button>
+                        </div>
+
+                        <!-- Campos ocultos para paginação e ordenação -->
+                        <input type="hidden" th:field="${filtro.pagina}">
+                        <input type="hidden" th:field="${filtro.ordenacao}">
+                        <input type="hidden" th:field="${filtro.direcao}">
+                    </form>
+
+                    <!-- Tabela de receitas -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>
+                                    <a href="#" class="text-decoration-none text-dark" data-sort="data">
+                                        Data
+                                        <i class="ti" th:classappend="${(filtro.ordenacao == 'data') ? ((filtro.direcao == 'asc') ? 'ti-sort-ascending' : 'ti-sort-descending') : 'ti-arrows-sort'}"></i>
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="#" class="text-decoration-none text-dark" data-sort="descricao">
+                                        Descrição
+                                        <i class="ti" th:classappend="${(filtro.ordenacao == 'descricao') ? ((filtro.direcao == 'asc') ? 'ti-sort-ascending' : 'ti-sort-descending') : 'ti-arrows-sort'}"></i>
+                                    </a>
+                                </th>
+                                <th>Categoria</th>
+                                <th>
+                                    <a href="#" class="text-decoration-none text-dark" data-sort="valor">
+                                        Valor
+                                        <i class="ti" th:classappend="${(filtro.ordenacao == 'valor') ? ((filtro.direcao == 'asc') ? 'ti-sort-ascending' : 'ti-sort-descending') : 'ti-arrows-sort'}"></i>
+                                    </a>
+                                </th>
+                                <th>Ações</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${receitas == null || receitas.empty}">
+                                <td colspan="5" class="text-center">Nenhuma receita encontrada</td>
+                            </tr>
+                            <tr th:each="receita : ${receitas}">
+                                <td th:text="${#temporals.format(receita.transactionDate, 'dd/MM/yyyy')}">01/01/2025</td>
+                                <td th:text="${receita.description}">Salário</td>
+                                <td><span class="badge bg-success" th:text="${receita.category}">Salário</span></td>
+                                <td th:text="${#numbers.formatCurrency(receita.value)}">R$ 5.000,00</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                            <i class="ti ti-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger">
+                                            <i class="ti ti-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginação -->
+                    <nav aria-label="Navegação de páginas" th:if="${totalPaginas > 1}">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${paginaAtual == 0} ? 'disabled'">
+                                <a class="page-link" href="#"
+                                   th:href="@{/receitas(
+                                        descricao=${filtro.descricao},
+                                        categoria=${filtro.categoria},
+                                        dataInicial=${filtro.dataInicial},
+                                        dataFinal=${filtro.dataFinal},
+                                        ordenacao=${filtro.ordenacao},
+                                        direcao=${filtro.direcao},
+                                        pagina=${paginaAtual - 1}
+                                   )}"
+                                   tabindex="-1">Anterior</a>
+                            </li>
+                            <li class="page-item"
+                                th:each="pagina : ${#numbers.sequence(0, totalPaginas - 1)}"
+                                th:classappend="${pagina == paginaAtual} ? 'active'">
+                                <a class="page-link" href="#"
+                                   th:href="@{/receitas(
+                                        descricao=${filtro.descricao},
+                                        categoria=${filtro.categoria},
+                                        dataInicial=${filtro.dataInicial},
+                                        dataFinal=${filtro.dataFinal},
+                                        ordenacao=${filtro.ordenacao},
+                                        direcao=${filtro.direcao},
+                                        pagina=${pagina}
+                                   )}"
+                                   th:text="${pagina + 1}">1</a>
+                            </li>
+                            <li class="page-item"
+                                th:classappend="${paginaAtual == totalPaginas - 1} ? 'disabled'">
+                                <a class="page-link" href="#"
+                                   th:href="@{/receitas(
+                                        descricao=${filtro.descricao},
+                                        categoria=${filtro.categoria},
+                                        dataInicial=${filtro.dataInicial},
+                                        dataFinal=${filtro.dataFinal},
+                                        ordenacao=${filtro.ordenacao},
+                                        direcao=${filtro.direcao},
+                                        pagina=${paginaAtual + 1}
+                                   )}">Próximo</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

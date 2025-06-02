@@ -26,10 +26,13 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsServiceImpl userDetailsService;
+    private final AuthEntryPointJwt unauthorizedHandler;
+
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailsServiceImpl userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
+        this.unauthorizedHandler = new AuthEntryPointJwt();
         log.info("SecurityConfig inicializado");
 
     }
@@ -38,13 +41,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedHandler)
+                )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api-docs/**").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/swagger-ui.html").permitAll()
-                        .requestMatchers("/test-dynamodb").permitAll()  // endpoint de teste
+                        .requestMatchers("/css/**", "/js/**", "/webjars/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .disable() // Desabilita o form login padrão do Spring
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -54,6 +61,9 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+
+
 
 
     @Bean

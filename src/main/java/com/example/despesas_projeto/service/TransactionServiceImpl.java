@@ -1,5 +1,9 @@
 package com.example.despesas_projeto.service;
 
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.example.despesas_projeto.domain.Page;
 import com.example.despesas_projeto.domain.PageRequest;
 import com.example.despesas_projeto.domain.TransactionFilter;
@@ -10,11 +14,13 @@ import com.example.despesas_projeto.model.Transaction;
 import com.example.despesas_projeto.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -23,6 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
+    private final DynamoDBMapper dynamoDBMapper;
 
     @Override
     public Transaction createTransaction(Transaction transaction) {
@@ -97,8 +104,25 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<Transaction> findByDateRange(String userId, LocalDateTime startDate, LocalDateTime endDate) {
         log.debug("Buscando transações no período de {} até {} para o usuário: {}", startDate, endDate, userId);
-        return transactionRepository.findByUserIdAndDateRange(userId, startDate, endDate);
+
+        Map<String, AttributeValue> eav = new HashMap<>();
+        eav.put(":userId", new AttributeValue().withS(userId));
+        eav.put(":startDate", new AttributeValue().withS(startDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
+        eav.put(":endDate", new AttributeValue().withS(endDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
+
+        // Usando KeyConditionExpression em vez de FilterExpression para campos de chave primária
+        DynamoDBQueryExpression<Transaction> queryExpression = new DynamoDBQueryExpression<Transaction>()
+                .withKeyConditionExpression("UserId = :userId and TransactionDate between :startDate and :endDate")
+                .withExpressionAttributeValues(eav);
+
+        try {
+            return dynamoDBMapper.query(Transaction.class, queryExpression);
+        } catch (Exception e) {
+            log.error("Erro ao buscar transações por período: {}", e.getMessage());
+            return new ArrayList<>(); // Retorna lista vazia em caso de erro
+        }
     }
+
 
     @Override
     public BigDecimal calculateTotalByType(String userId, TransactionType type, int year, int month) {

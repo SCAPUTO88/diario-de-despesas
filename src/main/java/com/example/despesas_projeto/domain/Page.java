@@ -30,4 +30,29 @@ public class Page<T> {
                 .last(pageRequest.getPage() == totalPages - 1)
                 .build();
     }
+
+    // Método para compatibilidade com Spring Data
+    public int getNumber() {
+        return pageNumber != null ? pageNumber : 0;
+    }
+
+    // Método auxiliar para verificar se há próxima página
+    public boolean hasNext() {
+        return !last;
+    }
+
+    // Método auxiliar para verificar se há página anterior
+    public boolean hasPrevious() {
+        return !first;
+    }
+
+    // Método para obter o número da próxima página
+    public int getNextPageNumber() {
+        return hasNext() ? getNumber() + 1 : getNumber();
+    }
+
+    // Método para obter o número da página anterior
+    public int getPreviousPageNumber() {
+        return hasPrevious() ? getNumber() - 1 : 0;
+    }
 }

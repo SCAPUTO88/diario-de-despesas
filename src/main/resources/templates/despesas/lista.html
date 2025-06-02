@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::div})}">
+<body>
+<div>
+    <div class="row justify-content-center fade-in">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Cabeçalho com título e botão de nova despesa -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title">
+                            <i class="ti ti-list text-primary"></i> Minhas Despesas
+                        </h5>
+                        <a th:href="@{/despesas/nova}" class="btn btn-primary">
+                            <i class="ti ti-plus"></i> Nova Despesa
+                        </a>
+                    </div>
+
+                    <!-- Filtros de busca -->
+                    <form th:action="@{/despesas}" method="get" class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control"
+                                   th:field="${filtro.descricao}"
+                                   placeholder="Buscar por descrição...">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" th:field="${filtro.categoria}">
+                                <option value="">Todas as categorias</option>
+                                <option th:each="cat : ${categorias}"
+                                        th:value="${cat}"
+                                        th:text="${cat}">Categoria</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <input type="date" class="form-control"
+                                       th:field="${filtro.dataInicial}">
+                                <span class="input-group-text">até</span>
+                                <input type="date" class="form-control"
+                                       th:field="${filtro.dataFinal}">
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-secondary w-100">
+                                <i class="ti ti-search"></i>
+                            </button>
+                        </div>
+
+                        <!-- Campos ocultos para paginação e ordenação -->
+                        <input type="hidden" th:field="${filtro.pagina}">
+                        <input type="hidden" th:field="${filtro.ordenacao}">
+                        <input type="hidden" th:field="${filtro.direcao}">
+                    </form>
+
+
+                    <!-- Tabela de despesas -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>
+                                    <button type="button" class="btn btn-link text-dark p-0 text-decoration-none" data-sort="data">
+                                        Data
+                                        <i class="ti" th:classappend="${(filtro.ordenacao == 'data') ? ((filtro.direcao == 'asc') ? 'ti-sort-ascending' : 'ti-sort-descending') : 'ti-arrows-sort'}"></i>
+                                    </button>
+                                </th>
+                                <th>
+                                    <button type="button" class="btn btn-link text-dark p-0 text-decoration-none" data-sort="descricao">
+                                        Descrição
+                                        <i class="ti" th:classappend="${(filtro.ordenacao == 'descricao') ? ((filtro.direcao == 'asc') ? 'ti-sort-ascending' : 'ti-sort-descending') : 'ti-arrows-sort'}"></i>
+                                    </button>
+                                </th>
+                                <th>Categoria</th>
+                                <th>
+                                    <button type="button" class="btn btn-link text-dark p-0 text-decoration-none" data-sort="valor">
+                                        Valor
+                                        <i class="ti" th:classappend="${(filtro.ordenacao == 'valor') ? ((filtro.direcao == 'asc') ? 'ti-sort-ascending' : 'ti-sort-descending') : 'ti-arrows-sort'}"></i>
+                                    </button>
+                                </th>
+                                <th>Ações</th>
+                            </tr>
+                            </thead>
+
+
+                            <tbody>
+                            <tr th:each="despesa : ${despesas}">
+                                <td th:text="${#temporals.format(despesa.transactionDate, 'dd/MM/yyyy')}">30/05/2025</td>
+                                <td th:text="${despesa.description}">Aluguel</td>
+                                <td>
+                                    <span th:replace="~{fragments/categoria-badge :: badge(${despesa.category})}">Categoria</span>
+                                </td>
+                                <td th:text="${#numbers.formatCurrency(despesa.value)}">R$ 1.500,00</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a th:href="@{/despesas/{userId}/editar/{data}(userId=${despesa.userId},data=${#temporals.format(despesa.transactionDate,'yyyy-MM-dd')))}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="ti ti-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                th:data-userid="${despesa.userId}"
+                                                th:data-data="${#temporals.format(despesa.transactionDate,'yyyy-MM-dd')}"
+                                                onclick="confirmarExclusao(this.getAttribute('data-userid'), this.getAttribute('data-data'))">
+                                            <i class="ti ti-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    <!-- Dentro da tabela -->
+                    <td>
+                        <div class="btn-group">
+                            <a href="#" class="btn btn-sm btn-outline-primary" data-tooltip="Editar registro">
+                                <i class="ti ti-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-tooltip="Excluir registro">
+                                <i class="ti ti-trash"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-info" data-tooltip="Ver detalhes">
+                                <i class="ti ti-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+
+                    <!-- Badges de categoria com ícones -->
+                    <td>
+    <span th:switch="${despesa.categoria}" class="badge d-flex align-items-center gap-1"
+          th:classappend="${
+            despesa.categoria == 'MORADIA' ? 'bg-primary' :
+            despesa.categoria == 'ALIMENTACAO' ? 'bg-success' :
+            despesa.categoria == 'TRANSPORTE' ? 'bg-info' :
+            despesa.categoria == 'SAUDE' ? 'bg-danger' :
+            despesa.categoria == 'EDUCACAO' ? 'bg-warning' :
+            despesa.categoria == 'LAZER' ? 'bg-secondary' : 'bg-dark'
+          }">
+        <i th:class="${
+            despesa.categoria == 'MORADIA' ? 'ti ti-home' :
+            despesa.categoria == 'ALIMENTACAO' ? 'ti ti-bread' :
+            despesa.categoria == 'TRANSPORTE' ? 'ti ti-car' :
+            despesa.categoria == 'SAUDE' ? 'ti ti-heart-plus' :
+            despesa.categoria == 'EDUCACAO' ? 'ti ti-school' :
+            despesa.categoria == 'LAZER' ? 'ti ti-mood-smile' : 'ti ti-tag'
+        }"></i>
+        <span th:text="${despesa.categoria}">Categoria</span>
+    </span>
+                    </td>
+
+
+                    <!-- Paginação -->
+                    <nav aria-label="Navegação de páginas" th:if="${totalPaginas > 1}">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${paginaAtual == 0} ? 'disabled'">
+                                <a class="page-link" href="#"
+                                   th:href="@{/despesas(
+                                        descricao=${filtro.descricao},
+                                        categoria=${filtro.categoria},
+                                        dataInicial=${filtro.dataInicial},
+                                        dataFinal=${filtro.dataFinal},
+                                        ordenacao=${filtro.ordenacao},
+                                        direcao=${filtro.direcao},
+                                        pagina=${paginaAtual - 1}
+                                   )}"
+                                                       tabindex="-1">Anterior</a>
+                            </li>
+
+                            <li class="page-item"
+                                th:each="pagina : ${#numbers.sequence(0, totalPaginas - 1)}"
+                                th:classappend="${pagina == paginaAtual} ? 'active'">
+                                <a class="page-link" href="#"
+                                   th:href="@{/despesas(
+                                        descricao=${filtro.descricao},
+                                        categoria=${filtro.categoria},
+                                        dataInicial=${filtro.dataInicial},
+                                        dataFinal=${filtro.dataFinal},
+                                        ordenacao=${filtro.ordenacao},
+                                        direcao=${filtro.direcao},
+                                        pagina=${pagina}
+                                   )}"
+                                   th:text="${pagina + 1}">1</a>
+                            </li>
+
+                            <li class="page-item"
+                                th:classappend="${paginaAtual == totalPaginas - 1} ? 'disabled'">
+                                <a class="page-link" href="#"
+                                   th:href="@{/despesas(
+                                            descricao=${filtro.descricao},
+                                            categoria=${filtro.categoria},
+                                            dataInicial=${filtro.dataInicial},
+                                            dataFinal=${filtro.dataFinal},
+                                            ordenacao=${filtro.ordenacao},
+                                            direcao=${filtro.direcao},
+                                            pagina=${paginaAtual + 1}
+                                       )}">Próximo</a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
