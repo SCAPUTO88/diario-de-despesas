@@ -1,0 +1,190 @@
+/* Variáveis do tema */
+:root {
+    /* Tema Claro (padrão) */
+    --color-primary: #2D4059;
+    --color-secondary: #EA5455;
+    --color-background: #F6F6F6;
+    --color-surface: #FFFFFF;
+    --color-text: #333333;
+    --color-text-secondary: #666666;
+    --color-border: #E1E1E1;
+    
+    /* Sombras */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+    
+    /* Categorias */
+    --color-moradia: var(--color-primary);
+    --color-alimentacao: #28a745;
+    --color-transporte: #17a2b8;
+    --color-saude: #dc3545;
+    --color-educacao: #ffc107;
+    --color-lazer: #6c757d;
+    --color-outros: #495057;
+}
+
+/* Tema Escuro */
+[data-theme="dark"] {
+    --color-primary: #00ADB5;
+    --color-secondary: #EA5455;
+    --color-background: #222831;
+    --color-surface: #393E46;
+    --color-text: #EEEEEE;
+    --color-text-secondary: #B2B2B2;
+    --color-border: #4a4a4a;
+    
+    /* Sombras para tema escuro */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.2);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.3);
+}
+
+/* Estilos Base */
+body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Componentes */
+.navbar {
+    background-color: var(--color-surface) !important;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.card {
+    background-color: var(--color-surface);
+    border: none;
+    border-radius: 15px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Botões */
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary);
+    filter: brightness(110%);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary {
+    background-color: var(--color-secondary);
+    border-color: var(--color-secondary);
+}
+
+/* Formulários */
+.form-control, .form-select {
+    background-color: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--color-surface);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.2rem rgba(45, 64, 89, 0.25);
+}
+
+/* Tabelas */
+.table {
+    color: var(--color-text);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(45, 64, 89, 0.05);
+}
+
+/* Badges de categoria */
+.badge {
+    padding: 0.5em 0.8em;
+    font-weight: 500;
+}
+
+.badge.bg-primary { background-color: var(--color-moradia) !important; }
+.badge.bg-success { background-color: var(--color-alimentacao) !important; }
+.badge.bg-info { background-color: var(--color-transporte) !important; }
+.badge.bg-danger { background-color: var(--color-saude) !important; }
+.badge.bg-warning { background-color: var(--color-educacao) !important; }
+.badge.bg-secondary { background-color: var(--color-lazer) !important; }
+.badge.bg-dark { background-color: var(--color-outros) !important; }
+
+/* Links e Navegação */
+.nav-link, .navbar-brand {
+    color: var(--color-text) !important;
+}
+
+.nav-link:hover, .navbar-brand:hover {
+    color: var(--color-primary) !important;
+}
+
+/* Animações */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .table {
+        font-size: 0.9rem;
+    }
+}
+
+/* Tooltips */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5rem;
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 0.875rem;
+    white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+[data-tooltip]:hover:before {
+    opacity: 1;
+    visibility: visible;
+}

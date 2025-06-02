@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<header th:fragment="header">
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="ti ti-wallet me-2"></i>Gestor Financeiro
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="ti ti-menu-2"></i>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Menu para usuários autenticados -->
+                <ul class="navbar-nav me-auto" sec:authorize="isAuthenticated()">
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center" href="/" data-tooltip="Página inicial">
+                            <i class="ti ti-dashboard me-2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <!-- Menu Despesas -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="ti ti-minus-circle me-2"></i>
+                            <span>Despesas</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="/despesas/nova">
+                                    <i class="ti ti-plus me-2"></i>Nova Despesa
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="/despesas">
+                                    <i class="ti ti-list me-2"></i>Listar Despesas
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <!-- Menu Receitas -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="ti ti-plus-circle me-2"></i>
+                            <span>Receitas</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="/receitas/nova">
+                                    <i class="ti ti-plus me-2"></i>Nova Receita
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="/receitas">
+                                    <i class="ti ti-list me-2"></i>Listar Receitas
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <!-- Menu para usuários não autenticados -->
+                <ul class="navbar-nav" sec:authorize="!isAuthenticated()">
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center" href="/auth/login">
+                            <i class="ti ti-login me-2"></i>
+                            <span>Entrar</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center" href="/auth/register">
+                            <i class="ti ti-user-plus me-2"></i>
+                            <span>Registrar</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Menu do usuário autenticado -->
+                <ul class="navbar-nav" sec:authorize="isAuthenticated()">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="ti ti-user-circle me-2"></i>
+                            <span sec:authentication="name">Usuário</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="/auth/logout">
+                                    <i class="ti ti-logout me-2"></i>Sair
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <!-- Theme Toggle com tooltip -->
+                <div class="nav-item d-flex align-items-center ms-3">
+                    <div class="form-check form-switch" data-tooltip="Alternar tema claro/escuro">
+                        <input class="form-check-input" type="checkbox" id="themeSwitch" onclick="toggleTheme()">
+                        <label class="form-check-label" for="themeSwitch">
+                            <i class="ti ti-moon"></i>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+</html>

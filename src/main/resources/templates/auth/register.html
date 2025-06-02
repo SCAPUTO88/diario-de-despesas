@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::div})}">
+<body>
+<div>
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title text-center mb-4">Criar Conta</h4>
+
+                    <form th:action="@{/auth/register}" th:object="${registerRequest}" method="post">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email"
+                                   th:field="*{email}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('email')}"
+                                 th:errors="*{email}">Email error</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="password"
+                                   th:field="*{password}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('password')}"
+                                 th:errors="*{password}">Password error</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Criar Conta
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a th:href="@{/auth/login}" class="text-decoration-none">
+                            Já tem uma conta? Entre aqui
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

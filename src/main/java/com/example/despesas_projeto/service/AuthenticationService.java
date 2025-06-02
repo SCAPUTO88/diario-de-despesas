@@ -9,6 +9,7 @@ import com.example.despesas_projeto.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -65,18 +66,29 @@ public class AuthenticationService {
 
 
     public AuthenticationResponseDTO authenticate(AuthenticationRequestDTO request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-        var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
-        var jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponseDTO.builder()
-                .token(jwtToken)
-                .build();
+        log.debug("Tentando autenticar usuário: {}", request.getEmail());
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+            log.debug("Autenticação bem sucedida para: {}", request.getEmail());
+
+            var user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+            var jwtToken = jwtService.generateToken(user);
+
+            log.debug("Token JWT gerado com sucesso");
+            return AuthenticationResponseDTO.builder()
+                    .token(jwtToken)
+                    .build();
+        } catch (AuthenticationException e) {
+            log.error("Erro de autenticação: {}", e.getMessage());
+            throw e;
+        }
     }
+
 
 }

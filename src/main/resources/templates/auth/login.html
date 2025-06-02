@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::div})}">
+<body>
+<div>
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title text-center mb-4">Login</h4>
+
+                    <div th:if="${error}" class="alert alert-danger" role="alert">
+                        [[${error}]]
+                    </div>
+
+                    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                        [[${successMessage}]]
+                    </div>
+
+                    <form th:action="@{/auth/login}" method="post">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email"
+                                   name="email" required autofocus>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="password"
+                                   name="password" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Entrar
+                        </button>
+                    </form>
+
+
+                    <div class="text-center mt-3">
+                        <a th:href="@{/auth/register}" class="text-decoration-none">
+                            Criar uma conta
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

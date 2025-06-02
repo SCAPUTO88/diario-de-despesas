@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::div})}">
+<body>
+<div>
+    <div class="row justify-content-center fade-in">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="ti ti-plus text-success"></i> Nova Receita
+                    </h5>
+
+                    <form th:action="@{/receitas/salvar}" method="POST"
+                          th:object="${receita}"
+                          class="needs-validation needs-loading" novalidate>
+                        <!-- Mensagem de erro global -->
+                        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger mb-4">
+                            <p th:each="err : ${#fields.globalErrors()}" th:text="${err}">Erro global</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="data" class="form-label">Data</label>
+                            <input type="datetime-local" class="form-control" id="data"
+                                   th:field="*{data}"
+                                   th:classappend="${#fields.hasErrors('data')} ? 'is-invalid'" required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('data')}" th:errors="*{data}">
+                                Erro na data
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="descricao" class="form-label">Descrição</label>
+                            <input type="text" class="form-control" id="descricao"
+                                   th:field="*{descricao}"
+                                   th:classappend="${#fields.hasErrors('descricao')} ? 'is-invalid'"
+                                   required maxlength="255" placeholder="Ex: Salário">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}">
+                                Erro na descrição
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="categoria" class="form-label">Categoria</label>
+                            <select class="form-select" id="categoria"
+                                    th:field="*{categoria}"
+                                    th:classappend="${#fields.hasErrors('categoria')} ? 'is-invalid'" required>
+                                <option value="">Selecione uma categoria</option>
+                                <option th:each="cat : ${categorias}"
+                                        th:value="${cat}"
+                                        th:text="${cat}">Categoria</option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}">
+                                Erro na categoria
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="valor" class="form-label">Valor (R$)</label>
+                            <input type="number" class="form-control" id="valor"
+                                   th:field="*{valor}"
+                                   th:classappend="${#fields.hasErrors('valor')} ? 'is-invalid'"
+                                   required step="0.01" min="0.01" placeholder="0,00">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('valor')}" th:errors="*{valor}">
+                                Erro no valor
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a th:href="@{/receitas}" class="btn btn-light me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-success btn-feedback">
+                                <i class="ti ti-device-floppy"></i> Salvar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

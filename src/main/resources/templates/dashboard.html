@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::div})}">
+<body>
+<div>
+    <div class="row fade-in">
+        <!-- Cards de Resumo -->
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Total de Despesas</h6>
+                    <h3 class="card-title mb-0" th:text="${#numbers.formatCurrency(totalDespesas)}">R$ 0,00</h3>
+                    <small class="text-muted">Este mês</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Total de Receitas</h6>
+                    <h3 class="card-title mb-0" th:text="${#numbers.formatCurrency(totalReceitas)}">R$ 0,00</h3>
+                    <small class="text-muted">Este mês</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Saldo</h6>
+                    <h3 class="card-title mb-0" th:classappend="${saldo >= 0 ? 'text-success' : 'text-danger'}"
+                        th:text="${#numbers.formatCurrency(saldo)}">R$ 0,00</h3>
+                    <small class="text-muted">Este mês</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Média de Despesas</h6>
+                    <h3 class="card-title mb-0" th:text="${#numbers.formatCurrency(mediaDespesas)}">R$ 0,00</h3>
+                    <small class="text-muted">Últimos 6 meses</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title mb-0">
+                            <i class="ti ti-chart-line text-primary"></i> Evolução Mensal
+                        </h5>
+                        <select class="form-select form-select-sm w-auto" id="evolucaoMensalPeriodo">
+                            <option value="3">Últimos 3 meses</option>
+                            <option value="6" selected>Últimos 6 meses</option>
+                            <option value="12">Últimos 12 meses</option>
+                        </select>
+                    </div>
+                    <canvas id="evolucaoMensalChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="ti ti-chart-pie text-primary"></i> Despesas por Categoria
+                    </h5>
+                    <canvas id="categoriasChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Últimas Transações -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="ti ti-list text-primary"></i> Últimas Transações
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Valor</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="transacao : ${ultimasTransacoes}">
+                                <td th:text="${#temporals.format(transacao.transactionDate, 'dd/MM/yyyy')}">01/01/2025</td>
+                                <td>
+        <span class="badge"
+              th:with="isIncome=${transacao.type.name() == 'INCOME'}"
+              th:classappend="${isIncome ? 'bg-success' : 'bg-danger'}"
+              th:text="${isIncome ? 'RECEITA' : 'DESPESA'}">DESPESA</span>
+                                </td>
+                                <td th:text="${transacao.description}">Descrição</td>
+                                <td>
+                                    <span th:replace="~{fragments/categoria-badge :: badge(${transacao.category})}">Categoria</span>
+                                </td>
+                                <td th:text="${#numbers.formatCurrency(transacao.value)}">R$ 0,00</td>
+                            </tr>
+
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    // Dados para os gráficos
+    const dadosEvolucaoMensal = /*[[${dadosEvolucaoMensal}]]*/ {};
+    const dadosCategorias = /*[[${dadosCategorias}]]*/ {};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

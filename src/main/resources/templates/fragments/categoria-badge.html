@@ -1,0 +1,23 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<span th:fragment="badge(categoria)" class="badge d-flex align-items-center gap-1"
+      th:classappend="${
+        categoria == 'MORADIA' ? 'bg-primary' :
+        categoria == 'ALIMENTACAO' ? 'bg-success' :
+        categoria == 'TRANSPORTE' ? 'bg-info' :
+        categoria == 'SAUDE' ? 'bg-danger' :
+        categoria == 'EDUCACAO' ? 'bg-warning' :
+        categoria == 'LAZER' ? 'bg-secondary' : 'bg-dark'
+      }">
+    <i th:class="${
+        categoria == 'MORADIA' ? 'ti ti-home' :
+        categoria == 'ALIMENTACAO' ? 'ti ti-bread' :
+        categoria == 'TRANSPORTE' ? 'ti ti-car' :
+        categoria == 'SAUDE' ? 'ti ti-heart-plus' :
+        categoria == 'EDUCACAO' ? 'ti ti-school' :
+        categoria == 'LAZER' ? 'ti ti-mood-smile' : 'ti ti-tag'
+    }"></i>
+    <span th:text="${categoria}">Categoria</span>
+</span>
+</html>
